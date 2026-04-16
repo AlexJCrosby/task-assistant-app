@@ -14,17 +14,9 @@ import android.widget.ListView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
-import org.json.JSONArray
-import org.json.JSONObject
-import java.io.IOException
 import android.view.inputmethod.EditorInfo
-import okhttp3.Call
-import okhttp3.Callback
-import okhttp3.Response
+import com.example.taskassistantapp.backend.RemoteHttpTaskBackend
+import com.example.taskassistantapp.backend.TaskBackend
 
 data class Task(
     val id: Int,
@@ -75,12 +67,7 @@ class TaskAdapter(
 
 class MainActivity : AppCompatActivity() {
 
-    companion object {
-        private const val BASE_URL = "http://10.0.2.2:8000"
-    }
-    private val client = OkHttpClient()
-    private val jsonMediaType = "application/json; charset=utf-8".toMediaType()
-
+    private val backend: TaskBackend = RemoteHttpTaskBackend()
     private lateinit var taskList: MutableList<Task>
     private lateinit var adapter: TaskAdapter
 
@@ -144,53 +131,25 @@ class MainActivity : AppCompatActivity() {
     private fun fetchTasks() {
         setStatus("Loading tasks...")
 
-        val request = Request.Builder()
-            .url("$BASE_URL/tasks")
-            .get()
-            .build()
-
-        client.newCall(request).enqueue(object : okhttp3.Callback {
-            override fun onFailure(call: okhttp3.Call, e: IOException) {
-                runOnUiThread {
+        backend.fetchTasks { result ->
+            runOnUiThread {
+                if (result.success) {
+                    replaceTasks(result.tasks)
+                    Toast.makeText(
+                        this@MainActivity,
+                        result.message,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
                     setStatus("Backend unavailable")
                     Toast.makeText(
                         this@MainActivity,
-                        "Failed to fetch tasks: ${e.message}",
+                        result.message,
                         Toast.LENGTH_LONG
                     ).show()
                 }
             }
-
-            override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
-                response.use {
-                    if (!response.isSuccessful) {
-                        runOnUiThread {
-                            setStatus("Error loading tasks")
-                            Toast.makeText(
-                                this@MainActivity,
-                                "Server error: ${response.code}",
-                                Toast.LENGTH_LONG
-                            ).show()
-                        }
-                        return
-                    }
-
-                    val body = response.body?.string().orEmpty()
-                    val json = JSONObject(body)
-                    val tasksJson = json.getJSONArray("tasks")
-                    val parsedTasks = parseTasks(tasksJson)
-
-                    runOnUiThread {
-                        replaceTasks(parsedTasks)
-                        Toast.makeText(
-                            this@MainActivity,
-                            "Tasks loaded",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }
-            }
-        })
+        }
     }
 
     private fun addTaskViaApi() {
@@ -209,59 +168,24 @@ class MainActivity : AppCompatActivity() {
         addButton.isEnabled = false
         setStatus("Adding task...")
 
-        val payload = JSONObject().apply {
-            put("text", taskText)
-        }
+        backend.addTask(taskText) { result ->
+            runOnUiThread {
+                isAddingTask = false
+                addButton.isEnabled = true
 
-        val request = Request.Builder()
-            .url("$BASE_URL/tasks")
-            .post(payload.toString().toRequestBody(jsonMediaType))
-            .build()
-
-        client.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                runOnUiThread {
-                    isAddingTask = false
-                    addButton.isEnabled = true
+                if (result.success) {
+                    input.text.clear()
+                    replaceTasks(result.tasks)
+                } else {
                     setStatus("Add failed")
                     Toast.makeText(
                         this@MainActivity,
-                        "Failed to add task: ${e.message}",
+                        result.message,
                         Toast.LENGTH_LONG
                     ).show()
                 }
             }
-
-            override fun onResponse(call: Call, response: Response) {
-                response.use {
-                    if (!response.isSuccessful) {
-                        runOnUiThread {
-                            isAddingTask = false
-                            addButton.isEnabled = true
-                            setStatus("Add failed")
-                            Toast.makeText(
-                                this@MainActivity,
-                                "Server error: ${response.code}",
-                                Toast.LENGTH_LONG
-                            ).show()
-                        }
-                        return
-                    }
-
-                    val body = response.body?.string().orEmpty()
-                    val json = JSONObject(body)
-                    val tasksJson = json.getJSONArray("tasks")
-                    val parsedTasks = parseTasks(tasksJson)
-
-                    runOnUiThread {
-                        isAddingTask = false
-                        addButton.isEnabled = true
-                        input.text.clear()
-                        replaceTasks(parsedTasks)
-                    }
-                }
-            }
-        })
+        }
     }
 
     private fun completeSelectedTasksViaApi() {
@@ -274,56 +198,25 @@ class MainActivity : AppCompatActivity() {
 
         setStatus("Completing tasks...")
 
-        val payload = JSONObject()
-        payload.put("ids", JSONArray(selectedIds))
-
-        val request = Request.Builder()
-            .url("$BASE_URL/tasks/complete")
-            .post(payload.toString().toRequestBody(jsonMediaType))
-            .build()
-
-        client.newCall(request).enqueue(object : okhttp3.Callback {
-            override fun onFailure(call: okhttp3.Call, e: IOException) {
-                runOnUiThread {
+        backend.completeTasks(selectedIds) { result ->
+            runOnUiThread {
+                if (result.success) {
+                    replaceTasks(result.tasks)
+                    Toast.makeText(
+                        this@MainActivity,
+                        result.message,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
                     setStatus("Complete failed")
                     Toast.makeText(
                         this@MainActivity,
-                        "Failed to complete tasks: ${e.message}",
+                        result.message,
                         Toast.LENGTH_LONG
                     ).show()
                 }
             }
-
-            override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
-                response.use {
-                    if (!response.isSuccessful) {
-                        runOnUiThread {
-                            setStatus("Complete failed")
-                            Toast.makeText(
-                                this@MainActivity,
-                                "Server error: ${response.code}",
-                                Toast.LENGTH_LONG
-                            ).show()
-                        }
-                        return
-                    }
-
-                    val body = response.body?.string().orEmpty()
-                    val json = JSONObject(body)
-                    val tasksJson = json.getJSONArray("tasks")
-                    val parsedTasks = parseTasks(tasksJson)
-
-                    runOnUiThread {
-                        replaceTasks(parsedTasks)
-                        Toast.makeText(
-                            this@MainActivity,
-                            "Selected tasks completed",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }
-            }
-        })
+        }
     }
 
     private fun deleteSelectedTasksViaApi() {
@@ -336,74 +229,25 @@ class MainActivity : AppCompatActivity() {
 
         setStatus("Deleting tasks...")
 
-        val payload = JSONObject()
-        payload.put("ids", JSONArray(selectedIds))
-
-        val request = Request.Builder()
-            .url("$BASE_URL/tasks/delete")
-            .post(payload.toString().toRequestBody(jsonMediaType))
-            .build()
-
-        client.newCall(request).enqueue(object : okhttp3.Callback {
-            override fun onFailure(call: okhttp3.Call, e: IOException) {
-                runOnUiThread {
+        backend.deleteTasks(selectedIds) { result ->
+            runOnUiThread {
+                if (result.success) {
+                    replaceTasks(result.tasks)
+                    Toast.makeText(
+                        this@MainActivity,
+                        result.message,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
                     setStatus("Delete failed")
                     Toast.makeText(
                         this@MainActivity,
-                        "Failed to delete tasks: ${e.message}",
+                        result.message,
                         Toast.LENGTH_LONG
                     ).show()
                 }
             }
-
-            override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
-                response.use {
-                    if (!response.isSuccessful) {
-                        runOnUiThread {
-                            setStatus("Delete failed")
-                            Toast.makeText(
-                                this@MainActivity,
-                                "Server error: ${response.code}",
-                                Toast.LENGTH_LONG
-                            ).show()
-                        }
-                        return
-                    }
-
-                    val body = response.body?.string().orEmpty()
-                    val json = JSONObject(body)
-                    val tasksJson = json.getJSONArray("tasks")
-                    val parsedTasks = parseTasks(tasksJson)
-
-                    runOnUiThread {
-                        replaceTasks(parsedTasks)
-                        Toast.makeText(
-                            this@MainActivity,
-                            "Selected tasks deleted",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }
-            }
-        })
-    }
-
-    private fun parseTasks(tasksJson: JSONArray): MutableList<Task> {
-        val parsed = mutableListOf<Task>()
-
-        for (i in 0 until tasksJson.length()) {
-            val item = tasksJson.getJSONObject(i)
-            parsed.add(
-                Task(
-                    id = item.getInt("id"),
-                    text = item.getString("text"),
-                    completed = item.getBoolean("completed"),
-                    selected = false
-                )
-            )
         }
-
-        return parsed
     }
 
     private fun replaceTasks(newTasks: MutableList<Task>) {
