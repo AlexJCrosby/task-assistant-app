@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/title"
+        android:textSize="24sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/statusText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/status_disconnected"
+        android:layout_marginTop="8dp" />
+
+    <ListView
+        android:id="@+id/taskListView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="16dp" />
+
+    <EditText
+        android:id="@+id/taskInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/hint_enter_task"
+        android:inputType="text"
+        android:imeOptions="actionDone"
+        android:autofillHints=""
+        android:layout_marginTop="8dp" />
+
+    <Button
+        android:id="@+id/addTaskButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/add_task"
+        android:layout_marginTop="8dp" />
+
+    <Button
+        android:id="@+id/completeTasksButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/complete_selected"
+        android:layout_marginTop="8dp" />
+
+    <Button
+        android:id="@+id/deleteTasksButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/delete_selected"
+        android:layout_marginTop="8dp" />
+
+</LinearLayout>

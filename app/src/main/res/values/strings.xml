@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">TaskAssistantApp</string>
+    <string name="title">Task Assistant</string>
+    <string name="status_disconnected">Status: Disconnected</string>
+    <string name="hint_enter_task">Enter task</string>
+    <string name="add_task">Add Task</string>
+    <string name="complete_selected">Complete Selected Tasks</string>
+    <string name="delete_selected">Delete Selected Tasks</string>
+</resources>
