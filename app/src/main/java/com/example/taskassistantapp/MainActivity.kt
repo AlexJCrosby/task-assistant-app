@@ -18,7 +18,8 @@ import android.view.inputmethod.EditorInfo
 import com.example.taskassistantapp.backend.RemoteHttpTaskBackend
 import com.example.taskassistantapp.backend.TaskBackend
 import com.example.taskassistantapp.backend.LocalTaskBackend
-
+import com.example.taskassistantapp.backend.AudioReceiverManager
+import java.io.File
 
 data class Task(
     val id: Int,
@@ -92,6 +93,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var statusText: TextView
 
     private var isAddingTask = false
+    private var audioReceiverManager: AudioReceiverManager? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -139,6 +141,9 @@ class MainActivity : AppCompatActivity() {
         }
 
         fetchTasks()
+        if (USE_LOCAL_BACKEND) {
+            startAudioReceiver()
+        }
     }
 
     private fun fetchTasks() {
@@ -294,5 +299,59 @@ class MainActivity : AppCompatActivity() {
 
     private fun setStatus(message: String) {
         statusText.text = message
+    }
+
+    private fun startAudioReceiver() {
+        audioReceiverManager = AudioReceiverManager(
+            context = this,
+            port = 5001,
+            onStatus = { message ->
+                runOnUiThread {
+                    setStatus(message)
+                }
+            },
+            onAudioReceived = { receivedAudio ->
+                runOnUiThread {
+                    setStatus(
+                        "Audio received from ${receivedAudio.header.deviceId} " +
+                                "(seq ${receivedAudio.header.sequence})"
+                    )
+                    android.widget.Toast.makeText(
+                        this@MainActivity,
+                        "Saved WAV: ${receivedAudio.wavFile.name}",
+                        android.widget.Toast.LENGTH_SHORT
+                    ).show()
+                }
+
+                // Phase 4 hook:
+                // this is where Android-side ASR will run later
+                handleReceivedAudio(receivedAudio.wavFile)
+            },
+            onError = { error ->
+                runOnUiThread {
+                    setStatus(error)
+                    android.widget.Toast.makeText(
+                        this@MainActivity,
+                        error,
+                        android.widget.Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+        )
+
+        audioReceiverManager?.start()
+    }
+
+    private fun handleReceivedAudio(wavFile: File) {
+        // Phase 4 placeholder:
+        // Android Vosk integration will transcribe this file and call runTranscriptCommand(...)
+        runOnUiThread {
+            setStatus("Audio saved to ${wavFile.name}. ASR integration pending.")
+        }
+    }
+
+    override fun onDestroy() {
+        audioReceiverManager?.stop()
+        super.onDestroy()
     }
 }
