@@ -5,4 +5,5 @@ interface TaskBackend {
     fun addTask(taskText: String, callback: (BackendResult) -> Unit)
     fun completeTasks(taskIds: List<Int>, callback: (BackendResult) -> Unit)
     fun deleteTasks(taskIds: List<Int>, callback: (BackendResult) -> Unit)
+    fun executeTranscript(transcript: String, callback: (BackendResult) -> Unit)
 }

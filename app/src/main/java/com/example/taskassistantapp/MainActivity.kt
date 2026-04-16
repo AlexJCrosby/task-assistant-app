@@ -17,6 +17,8 @@ import androidx.appcompat.app.AppCompatActivity
 import android.view.inputmethod.EditorInfo
 import com.example.taskassistantapp.backend.RemoteHttpTaskBackend
 import com.example.taskassistantapp.backend.TaskBackend
+import com.example.taskassistantapp.backend.LocalTaskBackend
+
 
 data class Task(
     val id: Int,
@@ -67,7 +69,18 @@ class TaskAdapter(
 
 class MainActivity : AppCompatActivity() {
 
-    private val backend: TaskBackend = RemoteHttpTaskBackend()
+    companion object {
+        private const val USE_LOCAL_BACKEND = true
+    }
+
+    private val backend: TaskBackend by lazy {
+        if (USE_LOCAL_BACKEND) {
+            LocalTaskBackend(this)
+        } else {
+            RemoteHttpTaskBackend()
+        }
+    }
+
     private lateinit var taskList: MutableList<Task>
     private lateinit var adapter: TaskAdapter
 
@@ -244,6 +257,23 @@ class MainActivity : AppCompatActivity() {
                         this@MainActivity,
                         result.message,
                         Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+        }
+    }
+
+    private fun runTranscriptCommand(transcript: String) {
+        backend.executeTranscript(transcript) { result ->
+            runOnUiThread {
+                replaceTasks(result.tasks)
+                setStatus(result.message)
+
+                if (!result.success) {
+                    Toast.makeText(
+                        this@MainActivity,
+                        result.message,
+                        Toast.LENGTH_SHORT
                     ).show()
                 }
             }

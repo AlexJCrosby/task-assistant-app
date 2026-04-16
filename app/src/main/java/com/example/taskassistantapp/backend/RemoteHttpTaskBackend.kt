@@ -228,4 +228,16 @@ class RemoteHttpTaskBackend(
 
         return parsed
     }
+
+    override fun executeTranscript(transcript: String, callback: (BackendResult) -> Unit) {
+        callback(
+            BackendResult(
+                success = false,
+                message = "Transcript execution is not supported by the remote backend.",
+                transcript = transcript,
+                parsedIntent = null
+            )
+        )
+    }
 }
+
