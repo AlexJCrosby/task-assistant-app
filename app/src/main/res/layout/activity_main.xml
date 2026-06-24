@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="40dp">
 
     <TextView
         android:layout_width="wrap_content"
@@ -17,45 +16,52 @@
         android:id="@+id/statusText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/status_disconnected"
-        android:layout_marginTop="8dp" />
+        android:layout_marginTop="8dp"
+        android:text="@string/status_disconnected" />
+
+    <Button
+        android:id="@+id/refreshTasksButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Refresh Tasks" />
 
     <ListView
         android:id="@+id/taskListView"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_marginTop="16dp" />
+        android:layout_width="wrap_content"
+        android:layout_height="368dp"
+        android:layout_marginTop="16dp"
+        android:layout_weight="1" />
 
     <EditText
         android:id="@+id/taskInput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/hint_enter_task"
-        android:inputType="text"
-        android:imeOptions="actionDone"
+        android:layout_marginTop="8dp"
         android:autofillHints=""
-        android:layout_marginTop="8dp" />
+        android:hint="@string/hint_enter_task"
+        android:imeOptions="actionDone"
+        android:inputType="text" />
 
     <Button
         android:id="@+id/addTaskButton"
-        android:layout_width="match_parent"
+        android:layout_width="127dp"
         android:layout_height="wrap_content"
-        android:text="@string/add_task"
-        android:layout_marginTop="8dp" />
+        android:layout_marginTop="8dp"
+        android:text="@string/add_task" />
 
     <Button
         android:id="@+id/completeTasksButton"
-        android:layout_width="match_parent"
+        android:layout_width="311dp"
         android:layout_height="wrap_content"
-        android:text="@string/complete_selected"
-        android:layout_marginTop="8dp" />
+        android:layout_marginTop="8dp"
+        android:text="@string/complete_selected" />
 
     <Button
         android:id="@+id/deleteTasksButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/delete_selected"
-        android:layout_marginTop="8dp" />
+        android:layout_marginTop="8dp"
+        android:text="@string/delete_selected" />
 
 </LinearLayout>

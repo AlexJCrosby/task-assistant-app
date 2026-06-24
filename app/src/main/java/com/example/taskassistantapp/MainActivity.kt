@@ -71,7 +71,7 @@ class TaskAdapter(
 class MainActivity : AppCompatActivity() {
 
     companion object {
-        private const val USE_LOCAL_BACKEND = true
+        private const val USE_LOCAL_BACKEND = false
     }
 
     private val backend: TaskBackend by lazy {
@@ -90,6 +90,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var addButton: Button
     private lateinit var completeButton: Button
     private lateinit var deleteButton: Button
+    private lateinit var refreshButton: Button
     private lateinit var statusText: TextView
 
     private var isAddingTask = false
@@ -104,6 +105,7 @@ class MainActivity : AppCompatActivity() {
         addButton = findViewById(R.id.addTaskButton)
         completeButton = findViewById(R.id.completeTasksButton)
         deleteButton = findViewById(R.id.deleteTasksButton)
+        refreshButton = findViewById(R.id.refreshTasksButton)
         statusText = findViewById(R.id.statusText)
 
         taskList = mutableListOf()
@@ -120,6 +122,10 @@ class MainActivity : AppCompatActivity() {
 
         deleteButton.setOnClickListener {
             deleteSelectedTasksViaApi()
+        }
+
+        refreshButton.setOnClickListener {
+            fetchTasks()
         }
 
         input.setOnEditorActionListener { _, actionId, event ->
@@ -140,10 +146,14 @@ class MainActivity : AppCompatActivity() {
             updateStatus()
         }
 
-        fetchTasks()
         if (USE_LOCAL_BACKEND) {
             startAudioReceiver()
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        fetchTasks()
     }
 
     private fun fetchTasks() {

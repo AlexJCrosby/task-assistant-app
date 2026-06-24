@@ -13,7 +13,7 @@ import org.json.JSONObject
 import java.io.IOException
 
 class RemoteHttpTaskBackend(
-    private val baseUrl: String = "http://10.0.2.2:8000"
+    private val baseUrl: String = "http://192.168.1.141:8000"
 ) : TaskBackend {
 
     private val client = OkHttpClient()
